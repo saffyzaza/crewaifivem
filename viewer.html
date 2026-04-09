@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FiveM Script Generator</title>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg1:#0f1117;--bg2:#1a1d27;--bg3:#222635;--bg4:#2a2f42;
+      --tx1:#e8eaf0;--tx2:#9aa0b8;--tx3:#5a6080;
+      --em:#00d4a1;--em2:#00a87f;--em3:rgba(0,212,161,0.12);
+      --bd:rgba(255,255,255,0.07);--bd2:rgba(255,255,255,0.13);
+      --blue:#4d9fff;--blue2:rgba(77,159,255,0.12);
+      --warn:#ffb547;--rad:10px;--rad2:14px;
+    }
+    body.light{
+      --bg1:#f0f2f8;--bg2:#ffffff;--bg3:#f5f7ff;--bg4:#eaecf5;
+      --tx1:#1a1d2e;--tx2:#4a5070;--tx3:#8890aa;
+      --bd:rgba(0,0,0,0.08);--bd2:rgba(0,0,0,0.14);
+      --em:#00916e;--em2:#006e54;--em3:rgba(0,145,110,0.1);
+      --blue:#1a7fe0;--blue2:rgba(26,127,224,0.1);
+    }
+    body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg1);color:var(--tx1);font-size:14px;line-height:1.5;transition:background .2s,color .2s}
+    .app{display:flex;height:100vh;overflow:hidden;background:var(--bg2)}
+    .sidebar{width:280px;flex-shrink:0;display:flex;flex-direction:column;background:var(--bg2);border-right:0.5px solid var(--bd);transition:transform .25s}
+    .sidebar-head{padding:16px;border-bottom:0.5px solid var(--bd);display:flex;align-items:center;gap:10px}
+    .logo-icon{width:32px;height:32px;border-radius:8px;background:var(--em3);border:0.5px solid var(--em);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .logo-icon svg{width:16px;height:16px;fill:var(--em)}
+    .logo-text h1{font-size:13px;font-weight:500;color:var(--tx1)}
+    .logo-text p{font-size:11px;color:var(--tx3)}
+    .sidebar-body{flex:1;overflow-y:auto;padding:12px}
+    .sec-label{font-size:10px;font-weight:500;color:var(--tx3);letter-spacing:.08em;text-transform:uppercase;margin:0 0 8px;padding:0 4px}
+    .file-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;transition:background .15s;color:var(--tx2);font-size:13px}
+    .file-item:hover,.file-item.active{background:var(--em3);color:var(--em)}
+    .file-item svg{width:14px;height:14px;flex-shrink:0;opacity:.7}
+    .folder-header{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer;color:var(--tx1);font-size:13px;font-weight:500;transition:background .15s;margin-top:4px}
+    .folder-header:hover{background:var(--bg4)}
+    .folder-header svg{width:14px;height:14px;flex-shrink:0;fill:var(--warn)}
+    .folder-children{padding-left:12px;margin-bottom:4px;overflow:hidden;transition:max-height .3s}
+    .folder-children.collapsed{max-height:0 !important}
+    .sidebar-foot{padding:12px;border-top:0.5px solid var(--bd);display:flex;flex-direction:column;gap:8px}
+    .btn{padding:8px 14px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:0.5px solid;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px;width:100%}
+    .btn-primary{background:var(--em);color:#fff;border-color:var(--em)}
+    .btn-primary:hover{background:var(--em2);border-color:var(--em2)}
+    .btn-secondary{background:transparent;color:var(--tx2);border-color:var(--bd2)}
+    .btn-secondary:hover{background:var(--bg3);color:var(--tx1)}
+    .main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--bg1)}
+    .topbar{padding:12px 16px;background:var(--bg2);border-bottom:0.5px solid var(--bd);display:flex;align-items:center;gap:10px}
+    .menu-btn{display:none;width:32px;height:32px;border-radius:8px;background:transparent;border:0.5px solid var(--bd2);cursor:pointer;align-items:center;justify-content:center;color:var(--tx2);flex-shrink:0}
+    .menu-btn svg{width:16px;height:16px}
+    .topbar-info{flex:1;min-width:0}
+    .topbar-info h2{font-size:14px;font-weight:500;color:var(--tx1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .topbar-info p{font-size:11px;color:var(--tx3)}
+    .topbar-actions{display:flex;gap:6px;flex-shrink:0}
+    .icon-btn{padding:7px 12px;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;border:0.5px solid var(--bd2);background:transparent;color:var(--tx2);transition:all .15s;display:flex;align-items:center;gap:5px;white-space:nowrap}
+    .icon-btn:hover{background:var(--bg3);color:var(--tx1)}
+    .icon-btn.em{border-color:var(--em);color:var(--em)}
+    .icon-btn.em:hover{background:var(--em3)}
+    .code-area{flex:1;overflow:auto;padding:16px}
+    .code-block{background:var(--bg2);border:0.5px solid var(--bd);border-radius:var(--rad);overflow:auto;height:100%;display:flex;flex-direction:column}
+    .code-header{padding:8px 14px;border-bottom:0.5px solid var(--bd);display:flex;align-items:center;gap:8px;flex-shrink:0}
+    .lang-badge{font-size:10px;font-weight:500;padding:2px 8px;border-radius:20px;background:var(--em3);color:var(--em);border:0.5px solid var(--em)}
+    .dot{width:8px;height:8px;border-radius:50%}
+    pre{flex:1;padding:16px;overflow:auto;font-family:'Consolas','Monaco','Fira Code',monospace;font-size:13px;line-height:1.7;color:var(--tx1);white-space:pre-wrap;word-wrap:break-word}
+    .empty-state{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:32px;text-align:center}
+    .empty-icon{width:56px;height:56px;border-radius:16px;background:var(--em3);display:flex;align-items:center;justify-content:center;border:0.5px solid var(--em)}
+    .empty-icon svg{width:28px;height:28px;fill:var(--em)}
+    .empty-state h3{font-size:16px;font-weight:500;color:var(--tx1)}
+    .empty-state p{font-size:13px;color:var(--tx3);max-width:220px}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:100}
+    body.light .overlay{background:rgba(0,0,0,.35)}
+    .modal{background:var(--bg2);border-radius:var(--rad2);border:0.5px solid var(--bd2);width:90%;max-width:500px;overflow:hidden}
+    .modal-head{padding:16px;border-bottom:0.5px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+    .modal-head h2{font-size:15px;font-weight:500}
+    .close-btn{width:28px;height:28px;border-radius:7px;border:0.5px solid var(--bd2);background:transparent;cursor:pointer;color:var(--tx2);font-size:16px;display:flex;align-items:center;justify-content:center;transition:all .15s}
+    .close-btn:hover{background:var(--bg3);color:var(--tx1)}
+    .modal-body{padding:16px;display:flex;flex-direction:column;gap:14px}
+    label{font-size:12px;font-weight:500;color:var(--tx2);display:block;margin-bottom:5px}
+    textarea,input[type=text],input[type=password],select{width:100%;background:var(--bg3);border:0.5px solid var(--bd2);border-radius:8px;padding:10px 12px;color:var(--tx1);font-size:13px;font-family:inherit;resize:none;transition:border .15s;outline:none}
+    textarea:focus,input:focus,select:focus{border-color:var(--em)}
+    .radio-group{display:flex;gap:8px;flex-wrap:wrap}
+    .radio-pill{padding:6px 14px;border-radius:20px;border:0.5px solid var(--bd2);cursor:pointer;font-size:12px;font-weight:500;color:var(--tx2);transition:all .15s;background:transparent}
+    .radio-pill.selected{background:var(--em3);border-color:var(--em);color:var(--em)}
+    .modal-foot{padding:12px 16px;border-top:0.5px solid var(--bd);display:flex;gap:8px;justify-content:flex-end}
+    .modal-foot .btn{width:auto;padding:8px 20px}
+    .status-bar{background:var(--bg3);border:0.5px solid var(--bd);border-radius:8px;padding:10px 12px;display:flex;align-items:center;gap:10px}
+    .spinner{width:16px;height:16px;border-radius:50%;border:2px solid var(--bd2);border-top-color:var(--em);animation:spin .7s linear infinite;flex-shrink:0}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .theme-btn{width:32px;height:32px;border-radius:8px;border:0.5px solid var(--bd2);background:transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--tx2);transition:all .15s;flex-shrink:0}
+    .theme-btn:hover{background:var(--bg3);color:var(--tx1)}
+    .theme-btn svg{width:15px;height:15px}
+    .badge{font-size:10px;padding:2px 7px;border-radius:20px;font-weight:500}
+    .badge-resource{background:var(--em3);color:var(--em);border:0.5px solid var(--em)}
+    .badge-server{background:rgba(255,100,100,0.12);color:#ff6b6b;border:0.5px solid #ff6b6b}
+    .badge-client{background:var(--blue2);color:var(--blue);border:0.5px solid var(--blue)}
+    .scrollbar-thin::-webkit-scrollbar{width:4px}
+    .scrollbar-thin::-webkit-scrollbar-track{background:transparent}
+    .scrollbar-thin::-webkit-scrollbar-thumb{background:var(--bd2);border-radius:2px}
+    .sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:8}
+    .tabs{display:flex;gap:8px;margin-bottom:12px}
+    .tab{flex:1;padding:10px;border:0.5px solid var(--bd2);border-radius:8px;background:transparent;color:var(--tx2);cursor:pointer;text-align:center;font-size:12px;font-weight:500;transition:all .15s}
+    .tab.active{background:var(--em3);border-color:var(--em);color:var(--em)}
+    .tab-content{display:none}
+    .tab-content.active{display:block}
+    .settings-row{margin-bottom:12px}
+    .agent-panel{background:var(--bg3);border-top:0.5px solid var(--bd);max-height:0;overflow:hidden;transition:max-height .3s}
+    .agent-panel.show{max-height:250px}
+    .agent-content{padding:12px;max-height:200px;overflow-y:auto}
+    .agent-step{padding:8px 12px;margin-bottom:6px;background:var(--bg2);border-radius:6px;border-left:3px solid var(--em);font-size:12px}
+    .agent-step.active{border-left-color:var(--warn)}
+    .agent-step .name{color:var(--em);font-weight:500}
+    .agent-step .task{color:var(--tx2);margin-top:2px}
+    .status-indicator{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:6px;font-size:12px;margin-bottom:12px}
+    .status-indicator.online{background:rgba(0,212,161,0.15);color:#00d4a1;border:0.5px solid #00d4a1}
+    .status-indicator.offline{background:rgba(255,100,100,0.15);color:#ff6b6b;border:0.5px solid #ff6b6b}
+    .status-indicator.checking{background:var(--bg3);color:var(--tx3);border:0.5px solid var(--bd2)}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:currentColor}
+    .model-list{max-height:150px;overflow-y:auto;border:0.5px solid var(--bd2);border-radius:8px;background:var(--bg3)}
+    .model-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:0.5px solid var(--bd);font-size:12px}
+    .model-item:last-child{border-bottom:none}
+    .model-item .model-name{color:var(--tx1);font-weight:500}
+    .model-item .model-size{color:var(--tx3);font-size:11px}
+    .model-item .delete-btn{background:rgba(255,100,100,0.15);color:#ff6b6b;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;font-size:11px}
+    .model-item .delete-btn:hover{background:rgba(255,100,100,0.3)}
+    @media(max-width:700px){
+      .menu-btn{display:flex}
+      .sidebar{position:fixed;z-index:9;height:100%;left:0;top:0;transform:translateX(-100%);box-shadow:4px 0 20px rgba(0,0,0,.3)}
+      .sidebar.open{transform:translateX(0)}
+      .sidebar-overlay.open{display:block}
+      .icon-btn span{display:none}
+      .icon-btn{padding:7px 9px}
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+  
+  <div class="app">
+    <!-- Sidebar -->
+    <div class="sidebar scrollbar-thin" id="sidebar">
+      <div class="sidebar-head">
+        <div class="logo-icon">
+          <svg viewBox="0 0 20 20"><path d="M10 2L2 6v4c0 4.4 3.4 8.5 8 9.5C14.6 18.5 18 14.4 18 10V6l-8-4z"/></svg>
+        </div>
+        <div class="logo-text">
+          <h1>FiveM Generator</h1>
+          <p>Output Viewer</p>
+        </div>
+      </div>
+
+      <div class="sidebar-body scrollbar-thin">
+        <p class="sec-label">OUTPUT FILES</p>
+        <div id="treeContent">
+          <p style="color:var(--tx3);font-size:12px;padding:8px">Loading...</p>
+        </div>
+      </div>
+
+      <div class="sidebar-foot">
+        <button class="btn btn-primary" onclick="showGenModal()">
+          <svg viewBox="0 0 20 20" style="width:14px;height:14px;fill:currentColor"><path d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"/></svg>
+          New Script
+        </button>
+        <button class="btn btn-secondary" onclick="showSettingsModal()">
+          <svg viewBox="0 0 20 20" style="width:14px;height:14px;fill:currentColor"><path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"/></svg>
+          Settings
+        </button>
+        <button class="btn btn-secondary" onclick="showLogs()">
+          <svg viewBox="0 0 20 20" style="width:14px;height:14px;fill:currentColor"><path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v11a2 2 0 01-2 2H6a2 2 0 01-2-2V5zm3 4a1 1 0 000 2h.01a1 1 0 100-2H7zm3 0a1 1 0 000 2h3a1 1 0 100-2h-3zm-3 4a1 1 0 100 2h.01a1 1 0 100-2H7zm3 0a1 1 0 100 2h3a1 1 0 100-2h-3z" clip-rule="evenodd"/></svg>
+          View Logs
+        </button>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <div class="main">
+      <div class="topbar">
+        <button class="menu-btn" onclick="toggleSidebar()">
+          <svg viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm0 5a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" clip-rule="evenodd"/></svg>
+        </button>
+        <div class="topbar-info">
+          <h2 id="topFileName">Select a file</h2>
+          <p id="topFilePath"></p>
+        </div>
+        <div class="topbar-actions">
+          <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">
+            <svg viewBox="0 0 20 20" fill="currentColor" id="themeIcon"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/></svg>
+          </button>
+          <button class="icon-btn em" onclick="copyCode()">
+            <svg viewBox="0 0 20 20" style="width:13px;height:13px;fill:currentColor"><path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"/><path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z"/></svg>
+            <span>Copy</span>
+          </button>
+          <button class="icon-btn" onclick="downloadFile()">
+            <svg viewBox="0 0 20 20" style="width:13px;height:13px;fill:currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>
+            <span>Download</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="code-area">
+        <div class="code-block scrollbar-thin">
+          <div class="code-header">
+            <div class="dot" style="background:#ff5f57"></div>
+            <div class="dot" style="background:#febc2e"></div>
+            <div class="dot" style="background:#28c840"></div>
+            <span class="lang-badge" style="margin-left:8px" id="langBadge">LUA</span>
+            <span style="font-size:11px;color:var(--tx3);margin-left:auto" id="lineCount"></span>
+          </div>
+          <pre id="codeDisplay" class="scrollbar-thin">// Select a file from sidebar</pre>
+        </div>
+      </div>
+
+      <!-- Agent Panel -->
+      <div class="agent-panel" id="agentPanel">
+        <div class="agent-content" id="agentContent"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Generate Modal -->
+  <div class="overlay" id="genModal" style="display:none">
+    <div class="modal">
+      <div class="modal-head">
+        <h2>Generate New Script</h2>
+        <button class="close-btn" onclick="hideGenModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div>
+          <label>Describe your script</label>
+          <textarea id="reqInput" rows="3" placeholder="เช่น: ระบบร้านค้า QBCore มี NPC ขายของ, inventory, ตั้งราคาได้"></textarea>
+        </div>
+        <div>
+          <label>Framework</label>
+          <div class="radio-group" id="fwGroup">
+            <div class="radio-pill selected" onclick="selectFw(this,'')">Standalone</div>
+            <div class="radio-pill" onclick="selectFw(this,'ESX')">ESX</div>
+            <div class="radio-pill" onclick="selectFw(this,'QBCore')">QBCore</div>
+          </div>
+        </div>
+        <div id="genStatus" style="display:none">
+          <div class="status-bar">
+            <div class="spinner" id="spinner"></div>
+            <span style="font-size:13px;color:var(--tx2)" id="statusTxt">Generating...</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-secondary" onclick="hideGenModal()">Cancel</button>
+        <button class="btn btn-primary" id="genBtn" onclick="generate()">Generate</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="overlay" id="settingsModal" style="display:none">
+    <div class="modal" style="max-width:550px">
+      <div class="modal-head">
+        <h2>LLM Settings</h2>
+        <button class="close-btn" onclick="hideSettingsModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="tabs">
+          <div class="tab active" onclick="selectProviderTab('gemini')">✨ Gemini</div>
+          <div class="tab" onclick="selectProviderTab('ollama')">🦙 Ollama</div>
+        </div>
+        
+        <div class="tab-content active" id="geminiConfig">
+          <div class="settings-row">
+            <label>API Key</label>
+            <input type="password" id="geminiApiKey" placeholder="Enter Google API Key">
+          </div>
+          <div class="settings-row">
+            <label>Model</label>
+            <select id="geminiModel">
+              <option value="gemini-1.5-pro">gemini-1.5-pro</option>
+              <option value="gemini-1.5-flash">gemini-1.5-flash</option>
+              <option value="gemini-2.0-flash">gemini-2.0-flash</option>
+              <option value="gemini-3-flash-preview">gemini-3-flash-preview</option>
+            </select>
+          </div>
+        </div>
+        
+        <div class="tab-content" id="ollamaConfig">
+          <div class="status-indicator checking" id="ollamaStatus">
+            <span class="status-dot"></span>
+            <span id="ollamaStatusText">Checking...</span>
+          </div>
+          <div class="settings-row">
+            <label>Base URL</label>
+            <input type="text" id="ollamaUrl" placeholder="http://localhost:11434" onchange="checkOllamaStatus()">
+          </div>
+          <div class="settings-row">
+            <label>Active Model</label>
+            <select id="ollamaModel" style="flex:1">
+              <option value="">-- Select Model --</option>
+            </select>
+          </div>
+          
+          <!-- Installed Models -->
+          <div class="settings-row" style="margin-top:16px">
+            <label>Installed Models</label>
+            <div id="ollamaModelList" class="model-list"></div>
+          </div>
+          
+          <!-- Pull New Model -->
+          <div class="settings-row" style="margin-top:12px">
+            <label>Pull New Model</label>
+            <div style="display:flex;gap:8px">
+              <input type="text" id="pullModelName" placeholder="e.g. llama3, codellama, mistral" style="flex:1">
+              <button class="btn btn-primary" onclick="pullOllamaModel()" style="width:auto;padding:8px 16px">Pull</button>
+            </div>
+          </div>
+          
+          <!-- Pull Progress -->
+          <div id="pullProgress" style="display:none;margin-top:12px">
+            <div class="status-bar">
+              <div class="spinner"></div>
+              <span id="pullStatusText" style="font-size:12px;color:var(--tx2)">Pulling...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <button class="btn btn-secondary" onclick="hideSettingsModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="saveSettings()">Save</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+let isDark = true;
+let selectedFw = '';
+let currentProvider = 'gemini';
+let currentContent = '';
+let currentFileName = '';
+let currentFolder = '';
+
+// ============ Init ============
+document.addEventListener('DOMContentLoaded', () => {
+  loadFiles();
+  loadSettings();
+});
+
+// ============ Theme ============
+function toggleTheme() {
+  isDark = !isDark;
+  document.body.classList.toggle('light', !isDark);
+  document.getElementById('themeIcon').innerHTML = isDark 
+    ? '<path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>'
+    : '<path fill-rule="evenodd" d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z" clip-rule="evenodd"/>';
+}
+
+// ============ Sidebar ============
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebarOverlay').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+
+// ============ Files ============
+async function loadFiles() {
+  try {
+    const res = await fetch('/api/output');
+    const data = await res.json();
+    renderTree(data.resources || {});
+  } catch (e) {
+    document.getElementById('treeContent').innerHTML = '<p style="color:#ff6b6b;font-size:12px;padding:8px">Server not running</p>';
+  }
+}
+
+function renderTree(resources) {
+  const container = document.getElementById('treeContent');
+  if (Object.keys(resources).length === 0) {
+    container.innerHTML = '<p style="color:var(--tx3);font-size:12px;padding:8px">No files yet. Click "New Script" to generate.</p>';
+    return;
+  }
+  
+  container.innerHTML = Object.entries(resources).map(([folder, files]) => `
+    <div class="folder-header" onclick="toggleFolder(this)">
+      <svg viewBox="0 0 20 20"><path d="M2 5a2 2 0 012-2h3.586a1 1 0 01.707.293l.914.914A1 1 0 009.914 4.5H16a2 2 0 012 2V14a2 2 0 01-2 2H4a2 2 0 01-2-2V5z"/></svg>
+      <span>${folder}</span>
+      <span class="badge badge-resource" style="margin-left:auto">resource</span>
+    </div>
+    <div class="folder-children">
+      ${files.map(f => `
+        <div class="file-item" onclick="loadFile('${folder}','${f}')">
+          <svg viewBox="0 0 20 20" style="fill:var(--tx3)"><path d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z"/></svg>
+          <span>${f}</span>
+          ${getBadge(f)}
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+}
+
+function getBadge(filename) {
+  if (filename === 'client.lua') return '<span class="badge badge-client" style="margin-left:auto">client</span>';
+  if (filename === 'server.lua') return '<span class="badge badge-server" style="margin-left:auto">server</span>';
+  return '';
+}
+
+function toggleFolder(el) {
+  const children = el.nextElementSibling;
+  children.classList.toggle('collapsed');
+  el.querySelector('svg').style.opacity = children.classList.contains('collapsed') ? '0.4' : '1';
+}
+
+async function loadFile(folder, filename) {
+  document.querySelectorAll('.file-item').forEach(i => i.classList.remove('active'));
+  event.target.closest('.file-item').classList.add('active');
+  
+  try {
+    const res = await fetch(`/api/file/${folder}/${filename}`);
+    const data = await res.json();
+    
+    currentContent = data.content;
+    currentFileName = filename;
+    currentFolder = folder;
+    
+    document.getElementById('topFileName').textContent = filename;
+    document.getElementById('topFilePath').textContent = folder + ' / ' + filename;
+    document.getElementById('langBadge').textContent = getLang(filename);
+    document.getElementById('lineCount').textContent = data.content.split('\n').length + ' lines';
+    document.getElementById('codeDisplay').textContent = data.content;
+    
+    closeSidebar();
+  } catch (e) {
+    console.error(e);
+  }
+}
+
+function getLang(filename) {
+  if (filename.endsWith('.lua')) return 'LUA';
+  if (filename.endsWith('.sql')) return 'SQL';
+  if (filename.endsWith('.md')) return 'MD';
+  if (filename.endsWith('.json')) return 'JSON';
+  return 'TXT';
+}
+
+function copyCode() {
+  if (!currentContent) return alert('No file selected');
+  navigator.clipboard.writeText(currentContent);
+  const btn = document.querySelector('.icon-btn.em');
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<svg viewBox="0 0 20 20" style="width:13px;height:13px;fill:currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg><span>Copied!</span>';
+  setTimeout(() => btn.innerHTML = orig, 1500);
+}
+
+function downloadFile() {
+  if (!currentContent) return alert('No file selected');
+  const blob = new Blob([currentContent], {type: 'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = currentFileName;
+  a.click();
+}
+
+// ============ Generate Modal ============
+function showGenModal() { document.getElementById('genModal').style.display = 'flex'; closeSidebar(); }
+function hideGenModal() { 
+  document.getElementById('genModal').style.display = 'none'; 
+  document.getElementById('genStatus').style.display = 'none';
+  document.getElementById('genBtn').disabled = false;
+  document.getElementById('spinner').style.display = '';
+}
+
+function selectFw(el, val) {
+  document.querySelectorAll('.radio-pill').forEach(p => p.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedFw = val;
+}
+
+async function generate() {
+  let req = document.getElementById('reqInput').value.trim();
+  if (!req) { document.getElementById('reqInput').focus(); return; }
+  if (selectedFw) req += ` (${selectedFw} framework)`;
+  
+  document.getElementById('genStatus').style.display = 'block';
+  document.getElementById('genBtn').disabled = true;
+  document.getElementById('statusTxt').textContent = 'Starting...';
+  
+  // Show agent panel
+  document.getElementById('agentPanel').classList.add('show');
+  document.getElementById('agentContent').innerHTML = '';
+  
+  const agents = ['Requirement Analyzer', 'Feature Designer', 'Lua Architect', 'Code Generator'];
+  let agentIdx = 0;
+  addAgentStep(agents[0], 'Analyzing requirements...');
+  
+  try {
+    const res = await fetch('/api/generate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({requirement: req})
+    });
+    
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      
+      const text = decoder.decode(value);
+      document.getElementById('statusTxt').textContent = text.substring(0, 50) + '...';
+      
+      // Detect agent changes
+      if (text.includes('Agent:') || text.includes('Task:')) {
+        agentIdx = Math.min(agentIdx + 1, agents.length - 1);
+        addAgentStep(agents[agentIdx], 'Working...');
+      }
+    }
+    
+    document.getElementById('spinner').style.display = 'none';
+    document.getElementById('statusTxt').textContent = '✓ Generation complete!';
+    addAgentStep('System', 'Done!');
+    
+    loadFiles();
+    setTimeout(() => {
+      hideGenModal();
+      document.getElementById('agentPanel').classList.remove('show');
+    }, 2000);
+    
+  } catch (e) {
+    document.getElementById('statusTxt').textContent = 'Error: ' + e.message;
+  }
+}
+
+function addAgentStep(name, task) {
+  const el = document.createElement('div');
+  el.className = 'agent-step';
+  el.innerHTML = `<div class="name">${name}</div><div class="task">${task}</div>`;
+  document.getElementById('agentContent').appendChild(el);
+  document.getElementById('agentContent').scrollTop = 9999;
+}
+
+// ============ Logs ============
+async function showLogs() {
+  try {
+    const res = await fetch('/api/logs');
+    const data = await res.json();
+    
+    currentContent = data.logs || 'No logs';
+    currentFileName = 'generation.log';
+    
+    document.getElementById('topFileName').textContent = 'Logs';
+    document.getElementById('topFilePath').textContent = 'generation.log';
+    document.getElementById('langBadge').textContent = 'LOG';
+    document.getElementById('lineCount').textContent = '';
+    document.getElementById('codeDisplay').textContent = currentContent;
+    
+    closeSidebar();
+  } catch (e) {
+    alert('Could not load logs');
+  }
+}
+
+// ============ Settings Modal ============
+function showSettingsModal() { document.getElementById('settingsModal').style.display = 'flex'; closeSidebar(); }
+function hideSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
+
+function selectProviderTab(provider) {
+  currentProvider = provider;
+  document.querySelectorAll('.tabs .tab').forEach((t, i) => {
+    t.classList.toggle('active', (i === 0 && provider === 'gemini') || (i === 1 && provider === 'ollama'));
+  });
+  document.getElementById('geminiConfig').classList.toggle('active', provider === 'gemini');
+  document.getElementById('ollamaConfig').classList.toggle('active', provider === 'ollama');
+  
+  if (provider === 'ollama') {
+    checkOllamaStatus();
+  }
+}
+
+async function loadSettings() {
+  try {
+    const res = await fetch('/api/settings');
+    const s = await res.json();
+    
+    currentProvider = s.llm_provider || 'gemini';
+    selectProviderTab(currentProvider);
+    
+    if (s.google_api_key) document.getElementById('geminiApiKey').value = s.google_api_key;
+    document.getElementById('geminiModel').value = s.gemini_model_name || 'gemini-1.5-pro';
+    document.getElementById('ollamaUrl').value = s.ollama_base_url || 'http://localhost:11434';
+    document.getElementById('ollamaModel').value = s.ollama_model_name || 'llama3';
+  } catch (e) {}
+}
+
+async function saveSettings() {
+  const settings = { llm_provider: currentProvider };
+  
+  if (currentProvider === 'gemini') {
+    const key = document.getElementById('geminiApiKey').value.trim();
+    if (key) settings.google_api_key = key;
+    settings.gemini_model_name = document.getElementById('geminiModel').value;
+  } else {
+    settings.ollama_base_url = document.getElementById('ollamaUrl').value.trim();
+    settings.ollama_model_name = document.getElementById('ollamaModel').value.trim();
+  }
+  
+  try {
+    const res = await fetch('/api/settings', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(settings)
+    });
+    const data = await res.json();
+    if (data.success) {
+      alert('Settings saved!');
+      hideSettingsModal();
+    } else {
+      alert('Error: ' + (data.error || 'Unknown'));
+    }
+  } catch (e) {
+    alert('Failed: ' + e.message);
+  }
+}
+
+async function checkOllamaStatus() {
+  const statusEl = document.getElementById('ollamaStatus');
+  const statusText = document.getElementById('ollamaStatusText');
+  const url = document.getElementById('ollamaUrl').value.trim() || 'http://localhost:11434';
+  
+  statusEl.className = 'status-indicator checking';
+  statusText.textContent = 'Checking...';
+  
+  try {
+    const res = await fetch(url + '/api/tags', { 
+      method: 'GET',
+      mode: 'cors'
+    });
+    if (res.ok) {
+      const data = await res.json();
+      const modelCount = data.models ? data.models.length : 0;
+      statusEl.className = 'status-indicator online';
+      statusText.textContent = `Online (${modelCount} models)`;
+      
+      // Load models list
+      renderOllamaModels(data.models || []);
+    } else {
+      throw new Error('Not OK');
+    }
+  } catch (e) {
+    statusEl.className = 'status-indicator offline';
+    statusText.textContent = 'Offline - Ollama not running';
+    renderOllamaModels([]);
+  }
+}
+
+function renderOllamaModels(models) {
+  const select = document.getElementById('ollamaModel');
+  const list = document.getElementById('ollamaModelList');
+  const currentValue = select.value;
+  
+  // Update select dropdown
+  select.innerHTML = '<option value="">-- Select Model --</option>';
+  models.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m.name;
+    opt.textContent = m.name;
+    select.appendChild(opt);
+  });
+  if (currentValue) select.value = currentValue;
+  
+  // Update model list with delete buttons
+  if (models.length === 0) {
+    list.innerHTML = '<div style="padding:12px;color:var(--tx3);text-align:center">No models installed</div>';
+    return;
+  }
+  
+  list.innerHTML = models.map(m => {
+    const size = formatSize(m.size);
+    return `
+      <div class="model-item">
+        <div>
+          <span class="model-name">${m.name}</span>
+          <span class="model-size">${size}</span>
+        </div>
+        <button class="delete-btn" onclick="deleteOllamaModel('${m.name}')">Delete</button>
+      </div>
+    `;
+  }).join('');
+}
+
+function formatSize(bytes) {
+  if (!bytes) return '';
+  const gb = bytes / (1024 * 1024 * 1024);
+  if (gb >= 1) return `(${gb.toFixed(1)} GB)`;
+  const mb = bytes / (1024 * 1024);
+  return `(${mb.toFixed(0)} MB)`;
+}
+
+async function pullOllamaModel() {
+  const modelName = document.getElementById('pullModelName').value.trim();
+  if (!modelName) {
+    alert('Please enter a model name');
+    return;
+  }
+  
+  const url = document.getElementById('ollamaUrl').value.trim() || 'http://localhost:11434';
+  const progressEl = document.getElementById('pullProgress');
+  const statusText = document.getElementById('pullStatusText');
+  
+  progressEl.style.display = 'block';
+  statusText.textContent = `Pulling ${modelName}...`;
+  
+  try {
+    const res = await fetch(url + '/api/pull', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ name: modelName, stream: false })
+    });
+    
+    if (res.ok) {
+      statusText.textContent = `✓ ${modelName} pulled successfully!`;
+      document.getElementById('pullModelName').value = '';
+      setTimeout(() => {
+        progressEl.style.display = 'none';
+        checkOllamaStatus();
+      }, 2000);
+    } else {
+      const err = await res.json();
+      statusText.textContent = `Error: ${err.error || 'Failed to pull'}`;
+    }
+  } catch (e) {
+    statusText.textContent = `Error: ${e.message}`;
+  }
+}
+
+async function deleteOllamaModel(modelName) {
+  if (!confirm(`Delete model "${modelName}"?`)) return;
+  
+  const url = document.getElementById('ollamaUrl').value.trim() || 'http://localhost:11434';
+  
+  try {
+    const res = await fetch(url + '/api/delete', {
+      method: 'DELETE',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ name: modelName })
+    });
+    
+    if (res.ok) {
+      alert(`Model "${modelName}" deleted`);
+      checkOllamaStatus();
+    } else {
+      const err = await res.json();
+      alert(`Error: ${err.error || 'Failed to delete'}`);
+    }
+  } catch (e) {
+    alert(`Error: ${e.message}`);
+  }
+}
+</script>
+</body>
+</html>
